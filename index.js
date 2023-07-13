@@ -43,8 +43,6 @@ async function sendTransaction() {
         let tx = await wallet.sendTransaction(transaction);
   
         console.log(`Transaction hash: ${tx.hash}`);
-      } else {
-        console.log("not enough to send")
       }
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
