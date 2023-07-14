@@ -25,9 +25,14 @@ async function sendTransaction() {
         continue;
       }
 
-      const gasLimit = BigInt("21000");
-      const gasPrice = ethers.parseUnits("150", "gwei");
-      const transactionCost = gasLimit * gasPrice;
+      const dummytransaction = {
+        to: toAddress,
+        value: balance, // The amount to send
+      };
+      
+      const gasLimit = await provider.estimateGas(dummytransaction);
+      const GasPrice = (await provider.getFeeData()).gasPrice;
+      const transactionCost = gasLimit * GasPrice;
       const amountToSend = balance - (transactionCost);
       if (amountToSend >= balance) {
         console.log("enough to send")
