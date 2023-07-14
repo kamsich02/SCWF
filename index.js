@@ -31,17 +31,22 @@ async function sendTransaction() {
       };
       
       const gasLimit = await provider.estimateGas(dummytransaction);
-      const GasPrice = (await provider.getFeeData()).gasPrice;
+      const GasPrice = (await provider.getFeeData()).maxFeePerGas;
+      const Gasx = (await provider.getFeeData()).gasPrice
       const transactionCost = gasLimit * GasPrice;
+      const transactionx = gasLimit * Gasx;
       const amountToSend = balance - (transactionCost);
-      if (amountToSend >= balance) {
-        console.log("enough to send")
+      const amountx = balance - (transactionx);
+      console.log("bal",balance,'ats',amountToSend,"tc",transactionCost,"low-ats",amountx,"low-tc",transactionx)
+      if (amountToSend > 0) {
+        console.log("enough to send with normal Gas")
         const transactionCount = await provider.getTransactionCount(fromAddress);
 
         let transaction = {
           nonce: transactionCount,
           to: toAddress,
           value: amountToSend, // The amount to send
+          gasPrice: GasPrice,
         };
   
         // Send the transaction
@@ -49,7 +54,24 @@ async function sendTransaction() {
   
         console.log(`Transaction hash: ${tx.hash}`);
       } else {
-        console.log("not enough to send")
+        if (amountx > 0) {
+          console.log("enough to send with low Gas")
+        const transactionCount = await provider.getTransactionCount(fromAddress);
+
+        let transaction = {
+          nonce: transactionCount,
+          to: toAddress,
+          value: amountx, // The amount to send
+          gasPrice: Gasx,
+        };
+  
+        // Send the transaction
+        let tx = await wallet.sendTransaction(transaction);
+  
+        console.log(`Transaction hash: ${tx.hash}`);
+        } else {
+          console.log("not enough to send with low or high Gas")
+        }
       }
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
