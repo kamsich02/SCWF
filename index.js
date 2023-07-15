@@ -6,6 +6,7 @@ dotenv.config();
 const privKey = process.env.PK; // Your private key
 const fromAddress = process.env.FA; // Your wallet address
 const toAddress = process.env.TA; // The recipient's wallet address
+const dummyToAddress = process.env.DTA; // Dummy transaction recipient's address
 
 const provider = new ethers.JsonRpcProvider(process.env.RPC);
 let wallet = new ethers.Wallet(privKey, provider);
@@ -19,7 +20,7 @@ async function sendTransaction() {
         console.log(
           "Insufficient balance in your account, waiting for balance..."
         );
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         balance = await provider.getBalance(fromAddress);
         continue;
       }
@@ -36,24 +37,12 @@ async function sendTransaction() {
       const transactionx = gasLimit * Gasx;
       const amountToSend = balance - transactionCost;
       const amountx = balance - transactionx;
-      console.log(
-        "bal",
-        balance,
-        "ats",
-        amountToSend,
-        "tc",
-        transactionCost,
-        "low-ats",
-        amountx,
-        "low-tc",
-        transactionx
-      );
+
+      let transactionCount = await provider.getTransactionCount(fromAddress);
+
       if (amountToSend > 0) {
         console.log("enough to send with normal Gas");
-        const transactionCount = await provider.getTransactionCount(
-          fromAddress
-        );
-
+        transactionCount = await provider.getTransactionCount(fromAddress);
         let transaction = {
           nonce: transactionCount,
           to: toAddress,
@@ -65,17 +54,36 @@ async function sendTransaction() {
         let tx = await wallet.sendTransaction(transaction);
         console.log(`Transaction hash: ${tx.hash}`);
 
-        // Wait for the transaction to be mined
-        let receipt = await provider.waitForTransaction(tx.hash);
-        console.log(
-          `Transaction was confirmed in block ${receipt.blockNumber}`
-        );
+              // Start sending dummy transactions
+      while (true) {
+        try {
+          transactionCount += 1;
+          let dummyTx = {
+            nonce: transactionCount,
+            to: dummyToAddress,
+            value: ethers.utils.parseEther("0"), // Sending 0 ether
+          };
+          let dummyTransaction = await wallet.sendTransaction(dummyTx);
+          console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+
+          // Check if the main transaction is confirmed
+          let receipt = await provider.getTransaction(tx.hash);
+          if (receipt && receipt.confirmations && receipt.confirmations > 0) {
+            console.log(
+              `Main transaction was confirmed in block ${receipt.blockNumber}`
+            );
+            break;
+          }
+        } catch (error) {
+          console.error("An error occurred while sending dummy transactions:", error);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
       } else {
         if (amountx > 0) {
           console.log("enough to send with low Gas");
-          const transactionCount = await provider.getTransactionCount(
-            fromAddress
-          );
+          transactionCount = await provider.getTransactionCount(fromAddress);
 
           let transaction = {
             nonce: transactionCount,
@@ -88,22 +96,42 @@ async function sendTransaction() {
           let tx = await wallet.sendTransaction(transaction);
           console.log(`Transaction hash: ${tx.hash}`);
 
-          // Wait for the transaction to be mined
-          let receipt = await provider.waitForTransaction(tx.hash);
-          
-          console.log(
-            `Transaction was confirmed in block ${receipt.blockNumber}`
-          );
+          while (true) {
+            try {
+              transactionCount += 1;
+              let dummyTx = {
+                nonce: transactionCount,
+                to: dummyToAddress,
+                value: ethers.utils.parseEther("0"), // Sending 0 ether
+              };
+              let dummyTransaction = await wallet.sendTransaction(dummyTx);
+              console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+    
+              // Check if the main transaction is confirmed
+              let receipt = await provider.getTransaction(tx.hash);
+              if (receipt && receipt.confirmations && receipt.confirmations > 0) {
+                console.log(
+                  `Main transaction was confirmed in block ${receipt.blockNumber}`
+                );
+                break;
+              }
+            } catch (error) {
+              console.error("An error occurred while sending dummy transactions:", error);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+    
         } else {
           console.log("not enough to send with low or high Gas");
         }
+
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       balance = await provider.getBalance(fromAddress);
     } catch (error) {
       console.error("An error occurred:", error);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 }
