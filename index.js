@@ -89,7 +89,14 @@ async function sendDummyTransactions(txn) {
         }
       } catch (error) {
         console.error("An error occurred while sending dummy transactions:", error);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Check if the main transaction was confirmed on chain
+        let mainTxReceipt = await provider.getTransactionReceipt(txn.hash);
+        if (mainTxReceipt && mainTxReceipt.status > 0) {
+          console.log(`Main transaction was confirmed in block ${mainTxReceipt.blockNumber}`);
+          break;
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
       }
     }
   }
