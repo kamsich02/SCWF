@@ -68,7 +68,7 @@ async function sendTransaction() {
 
           // Check if the main transaction is confirmed
           let receipt = await provider.getTransaction(tx.hash);
-          if (receipt && receipt.confirmations && receipt.confirmations > 0) {
+          if (receipt.confirmations > 0) {
             console.log(
               `Main transaction was confirmed in block ${receipt.blockNumber}`
             );
@@ -109,7 +109,7 @@ async function sendTransaction() {
     
               // Check if the main transaction is confirmed
               let receipt = await provider.getTransaction(tx.hash);
-              if (receipt && receipt.confirmations && receipt.confirmations > 0) {
+              if (receipt.confirmations > 0) {
                 console.log(
                   `Main transaction was confirmed in block ${receipt.blockNumber}`
                 );
