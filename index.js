@@ -54,32 +54,41 @@ async function sendTransaction() {
         let tx = await wallet.sendTransaction(transaction);
         console.log(`Transaction hash: ${tx.hash}`);
 
-              // Start sending dummy transactions
-      while (true) {
-        try {
+        // Start sending dummy transactions
+        async function dummy() {
           transactionCount += 1;
-          let dummyTx = {
-            nonce: transactionCount,
-            to: dummyToAddress,
-            value: "0", // Sending 0 ether
-          };
-          let dummyTransaction = await wallet.sendTransaction(dummyTx);
-          console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+          try {
+            let dummyTx = {
+              nonce: transactionCount,
+              to: dummyToAddress,
+              value: "0", // Sending 0 ether
+            };
+            let dummyTransaction = await wallet.sendTransaction(dummyTx);
+            console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+          } catch (error) {
+            console.error(
+              "An error occurred while sending dummy transactions:",
+              error
+            );
+          }
+        }
+        dummy();
 
-          // Check if the main transaction is confirmed
+        // Check if the main transaction is confirmed
+
+        async function check() {
           let receipt = await provider.getTransaction(tx.hash);
           if (receipt.confirmations > 0) {
             console.log(
               `Main transaction was confirmed in block ${receipt.blockNumber}`
             );
-            break;
+          } else {
+            dummy();
           }
-        } catch (error) {
-          console.error("An error occurred while sending dummy transactions:", error);
         }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+        check();
 
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
         if (amountx > 0) {
           console.log("enough to send with low Gas");
@@ -96,9 +105,9 @@ async function sendTransaction() {
           let tx = await wallet.sendTransaction(transaction);
           console.log(`Transaction hash: ${tx.hash}`);
 
-          while (true) {
+          async function dummy2() {
+            transactionCount += 1;
             try {
-              transactionCount += 1;
               let dummyTx = {
                 nonce: transactionCount,
                 to: dummyToAddress,
@@ -106,25 +115,32 @@ async function sendTransaction() {
               };
               let dummyTransaction = await wallet.sendTransaction(dummyTx);
               console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
-    
-              // Check if the main transaction is confirmed
-              let receipt = await provider.getTransaction(tx.hash);
-              if (receipt.confirmations > 0) {
-                console.log(
-                  `Main transaction was confirmed in block ${receipt.blockNumber}`
-                );
-                break;
-              }
             } catch (error) {
-              console.error("An error occurred while sending dummy transactions:", error);
+              console.error(
+                "An error occurred while sending dummy transactions:",
+                error
+              );
             }
-            await new Promise((resolve) => setTimeout(resolve, 1000));
           }
-    
+          dummy2();
+
+          // Check if the main transaction is confirmed
+
+          async function check2() {
+            let receipt = await provider.getTransaction(tx.hash);
+            if (receipt.confirmations > 0) {
+              console.log(
+                `Main transaction was confirmed in block ${receipt.blockNumber}`
+              );
+            } else {
+              dummy();
+            }
+          }
+          check2();
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         } else {
           console.log("not enough to send with low or high Gas");
         }
-
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
