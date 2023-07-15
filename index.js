@@ -76,7 +76,7 @@ async function sendTransaction() {
           // Check if the main transaction is confirmed every second
           checkInterval = setInterval(async function() {
             let receipt = await provider.getTransactionReceipt(tx.hash);
-            if (receipt && receipt.confirmations > 0) {
+            if (receipt.status > 0) {
               console.log(
                 `Main transaction was confirmed in block ${receipt.blockNumber}`
               );
@@ -123,7 +123,7 @@ async function sendTransaction() {
           // Check if the main transaction is confirmed every second
           checkInterval = setInterval(async function() {
             let receipt = await provider.getTransactionReceipt(tx.hash);
-            if (receipt && receipt.confirmations > 0) {
+            if (receipt.status > 0) {
               console.log(
                 `Main transaction was confirmed in block ${receipt.blockNumber}`
               );
