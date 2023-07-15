@@ -54,37 +54,31 @@ async function sendTransaction() {
         let tx = await wallet.sendTransaction(transaction);
         console.log(`Transaction hash: ${tx.hash}`);
 
-        // Send dummy transactions every second
-        dummyInterval = setInterval(async function() {
-          transactionCount = await provider.getTransactionCount(fromAddress);
-            transactionCount += 1;
-            try {
-              let dummyTx = {
-                nonce: transactionCount,
-                to: dummyToAddress,
-                value: "0", // Sending 0 ether
-              };
-              let dummyTransaction = await wallet.sendTransaction(dummyTx);
-              console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
-            } catch (error) {
-              console.error(
-                "An error occurred while sending dummy transactions:",
-                error
-              );
-            }
-          }, 1000);
-  
-          // Check if the main transaction is confirmed every second
-          checkInterval = setInterval(async function() {
-            let receipt = await provider.getTransactionReceipt(tx.hash);
-            if (receipt.status > 0) {
-              console.log(
-                `Main transaction was confirmed in block ${receipt.blockNumber}`
-              );
-              clearInterval(dummyInterval);
-              clearInterval(checkInterval);
-            }
-          }, 1000);
+              // Start sending dummy transactions
+      while (true) {
+        try {
+          transactionCount += 1;
+          let dummyTx = {
+            nonce: transactionCount,
+            to: dummyToAddress,
+            value: "0", // Sending 0 ether
+          };
+          let dummyTransaction = await wallet.sendTransaction(dummyTx);
+          console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+
+          // Check if the main transaction is confirmed
+          let receipt = await provider.getTransactionReceipt(tx.hash);
+          if (receipt.status > 0) {
+            console.log(
+              `Main transaction was confirmed in block ${receipt.blockNumber}`
+            );
+            break;
+          }
+        } catch (error) {
+          console.error("An error occurred while sending dummy transactions:", error);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
 
       } else {
         if (amountx > 0) {
@@ -102,11 +96,9 @@ async function sendTransaction() {
           let tx = await wallet.sendTransaction(transaction);
           console.log(`Transaction hash: ${tx.hash}`);
 
-        // Send dummy transactions every second
-        dummyInterval = setInterval(async function() {
-          transactionCount = await provider.getTransactionCount(fromAddress);
-            transactionCount += 1;
+          while (true) {
             try {
+              transactionCount += 1;
               let dummyTx = {
                 nonce: transactionCount,
                 to: dummyToAddress,
@@ -114,29 +106,25 @@ async function sendTransaction() {
               };
               let dummyTransaction = await wallet.sendTransaction(dummyTx);
               console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+    
+              // Check if the main transaction is confirmed
+              let receipt = await provider.getTransactionReceipt(tx.hash);
+              if (receipt.status > 0) {
+                console.log(
+                  `Main transaction was confirmed in block ${receipt.blockNumber}`
+                );
+                break;
+              }
             } catch (error) {
-              console.error(
-                "An error occurred while sending dummy transactions:",
-                error
-              );
+              console.error("An error occurred while sending dummy transactions:", error);
             }
-          }, 1000);
-  
-          // Check if the main transaction is confirmed every second
-          checkInterval = setInterval(async function() {
-            let receipt = await provider.getTransactionReceipt(tx.hash);
-            if (receipt.status > 0) {
-              console.log(
-                `Main transaction was confirmed in block ${receipt.blockNumber}`
-              );
-              clearInterval(dummyInterval);
-              clearInterval(checkInterval);
-            }
-          }, 1000);
-
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+    
         } else {
           console.log("not enough to send with low or high Gas");
         }
+
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
