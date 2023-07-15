@@ -61,7 +61,7 @@ async function sendTransaction() {
           let dummyTx = {
             nonce: transactionCount,
             to: dummyToAddress,
-            value: ethers.utils.parseEther("0"), // Sending 0 ether
+            value: "0", // Sending 0 ether
           };
           let dummyTransaction = await wallet.sendTransaction(dummyTx);
           console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
@@ -102,7 +102,7 @@ async function sendTransaction() {
               let dummyTx = {
                 nonce: transactionCount,
                 to: dummyToAddress,
-                value: ethers.utils.parseEther("0"), // Sending 0 ether
+                value: "0", // Sending 0 ether
               };
               let dummyTransaction = await wallet.sendTransaction(dummyTx);
               console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
