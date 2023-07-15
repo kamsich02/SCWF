@@ -56,6 +56,7 @@ async function sendTransaction() {
 
         // Send dummy transactions every second
         dummyInterval = setInterval(async function() {
+          transactionCount = await provider.getTransactionCount(fromAddress);
             transactionCount += 1;
             try {
               let dummyTx = {
@@ -103,6 +104,7 @@ async function sendTransaction() {
 
         // Send dummy transactions every second
         dummyInterval = setInterval(async function() {
+          transactionCount = await provider.getTransactionCount(fromAddress);
             transactionCount += 1;
             try {
               let dummyTx = {
