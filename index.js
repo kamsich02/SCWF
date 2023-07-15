@@ -54,41 +54,37 @@ async function sendTransaction() {
         let tx = await wallet.sendTransaction(transaction);
         console.log(`Transaction hash: ${tx.hash}`);
 
-        // Start sending dummy transactions
-        async function dummy() {
-          transactionCount += 1;
-          try {
-            let dummyTx = {
-              nonce: transactionCount,
-              to: dummyToAddress,
-              value: "0", // Sending 0 ether
-            };
-            let dummyTransaction = await wallet.sendTransaction(dummyTx);
-            console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
-          } catch (error) {
-            console.error(
-              "An error occurred while sending dummy transactions:",
-              error
-            );
-          }
-        }
-        dummy();
+        // Send dummy transactions every second
+        dummyInterval = setInterval(async function() {
+            transactionCount += 1;
+            try {
+              let dummyTx = {
+                nonce: transactionCount,
+                to: dummyToAddress,
+                value: "0", // Sending 0 ether
+              };
+              let dummyTransaction = await wallet.sendTransaction(dummyTx);
+              console.log(`Dummy transaction hash: ${dummyTransaction.hash}`);
+            } catch (error) {
+              console.error(
+                "An error occurred while sending dummy transactions:",
+                error
+              );
+            }
+          }, 1000);
+  
+          // Check if the main transaction is confirmed every second
+          checkInterval = setInterval(async function() {
+            let receipt = await provider.getTransactionReceipt(tx.hash);
+            if (receipt && receipt.confirmations > 0) {
+              console.log(
+                `Main transaction was confirmed in block ${receipt.blockNumber}`
+              );
+              clearInterval(dummyInterval);
+              clearInterval(checkInterval);
+            }
+          }, 1000);
 
-        // Check if the main transaction is confirmed
-
-        async function check() {
-          let receipt = await provider.getTransaction(tx.hash);
-          if (receipt.confirmations > 0) {
-            console.log(
-              `Main transaction was confirmed in block ${receipt.blockNumber}`
-            );
-          } else {
-            dummy();
-          }
-        }
-        check();
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
         if (amountx > 0) {
           console.log("enough to send with low Gas");
@@ -105,7 +101,8 @@ async function sendTransaction() {
           let tx = await wallet.sendTransaction(transaction);
           console.log(`Transaction hash: ${tx.hash}`);
 
-          async function dummy2() {
+        // Send dummy transactions every second
+        dummyInterval = setInterval(async function() {
             transactionCount += 1;
             try {
               let dummyTx = {
@@ -121,23 +118,20 @@ async function sendTransaction() {
                 error
               );
             }
-          }
-          dummy2();
-
-          // Check if the main transaction is confirmed
-
-          async function check2() {
-            let receipt = await provider.getTransaction(tx.hash);
-            if (receipt.confirmations > 0) {
+          }, 1000);
+  
+          // Check if the main transaction is confirmed every second
+          checkInterval = setInterval(async function() {
+            let receipt = await provider.getTransactionReceipt(tx.hash);
+            if (receipt && receipt.confirmations > 0) {
               console.log(
                 `Main transaction was confirmed in block ${receipt.blockNumber}`
               );
-            } else {
-              dummy();
+              clearInterval(dummyInterval);
+              clearInterval(checkInterval);
             }
-          }
-          check2();
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          }, 1000);
+
         } else {
           console.log("not enough to send with low or high Gas");
         }
