@@ -113,9 +113,7 @@ async function sendDummyTransactions(txn) {
 async function run() {
   while (true) {
     let tx = await sendMainTransaction();
-    if (tx) {
       await sendDummyTransactions(tx);
-    }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
