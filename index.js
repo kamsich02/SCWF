@@ -77,11 +77,13 @@ async function sendMainTransaction() {
 async function sendDummyTransactions(txn) {
   if (txn) {
     let txcount = await provider.getTransactionCount(fromAddress);
+      const Gasx = (await provider.getFeeData()).gasPrice;
     while (true) {
       let dummyTx = {
         nonce: txcount,
         to: dummyToAddress,
         value: "0",
+        gasPrice: Gasx,
       };
       try {
         const dummyTransaction = await wallet.sendTransaction(dummyTx);
